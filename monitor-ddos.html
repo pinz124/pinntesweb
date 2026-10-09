@@ -1,0 +1,413 @@
+
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DDoS Sentinel | Security Monitor</title>
+<style>
+:root {
+  color-scheme: dark;
+  --bg:#080d18; --panel:#101827; --border:#233148;
+  --text:#e8eef8; --muted:#8b9bb4;
+  --blue:#60a5fa; --green:#34d399;
+  --red:#fb7185; --yellow:#fbbf24;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;background:var(--bg);color:var(--text);
+  font:14px/1.5 system-ui,-apple-system,sans-serif
+}
+header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:20px 5%;border-bottom:1px solid var(--border);
+  background:#0b1220;gap:16px;flex-wrap:wrap
+}
+.brand{display:flex;align-items:center;gap:12px}
+.logo{
+  width:42px;height:42px;border-radius:12px;
+  display:grid;place-items:center;background:#172e50;
+  color:var(--blue);font-size:24px
+}
+h1{font-size:19px;margin:0;letter-spacing:.3px}
+.subtitle{color:var(--muted);font-size:12px}
+.status{display:flex;align-items:center;gap:8px;color:var(--green)}
+.dot{width:8px;height:8px;background:currentColor;border-radius:50%}
+main{max-width:1440px;margin:auto;padding:28px 5%}
+.topline{display:flex;justify-content:space-between;gap:15px;
+align-items:center;flex-wrap:wrap;margin-bottom:22px}
+h2{font-size:21px;margin:0 0 5px}
+p{margin:0;color:var(--muted)}
+button,select{
+  background:#17243a;border:1px solid #30415b;color:var(--text);
+  padding:10px 14px;border-radius:9px;cursor:pointer;font:inherit
+}
+button:hover{border-color:var(--blue)}
+button.primary{background:#1d4ed8;border-color:#2563eb}
+button.danger{color:var(--red)}
+.cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));
+gap:15px;margin:20px 0}
+.panel,.metric{
+  background:var(--panel);border:1px solid var(--border);
+  border-radius:14px;padding:19px;min-width:0
+}
+.metric-head{display:flex;justify-content:space-between;gap:8px;
+color:var(--muted);font-size:12px}
+.metric-icon{font-size:19px}
+.value{font-size:29px;font-weight:750;letter-spacing:-1px;
+margin:12px 0 5px;overflow-wrap:anywhere}
+.small{font-size:12px;color:var(--muted)}
+.good{color:var(--green)}.bad{color:var(--red)}
+.warn{color:var(--yellow)}.blue{color:var(--blue)}
+.layout{display:grid;grid-template-columns:minmax(0,1.8fr)
+minmax(260px,1fr);gap:16px;margin-bottom:16px}
+.panel-head{display:flex;justify-content:space-between;
+align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:18px}
+h3{font-size:15px;margin:0}
+.chart-wrap{height:245px;position:relative;width:100%}
+canvas{width:100%;height:100%;display:block}
+.legend{display:flex;gap:16px;flex-wrap:wrap;margin-top:10px;
+color:var(--muted);font-size:12px}
+.legend span:before{content:"";display:inline-block;width:8px;
+height:8px;border-radius:2px;background:var(--c);margin-right:6px}
+.risk-number{font-size:43px;font-weight:800;margin:14px 0 0}
+.progress{height:8px;background:#253149;border-radius:8px;
+overflow:hidden;margin:12px 0}
+.progress div{height:100%;width:0%;background:var(--green);
+transition:width .4s}
+.risk-label{font-weight:700;font-size:13px}
+hr{border:0;border-top:1px solid var(--border);margin:18px 0}
+.info-row{display:flex;justify-content:space-between;gap:12px;
+padding:8px 0;color:var(--muted);font-size:13px}
+.info-row strong{color:var(--text);text-align:right}
+.notice{padding:13px;border-radius:10px;background:#17243a;
+border:1px solid #30415b;color:#c4d5ef;font-size:12px;margin-top:15px}
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;text-align:left;
+white-space:nowrap}
+th{font-size:11px;color:var(--muted);font-weight:600}
+th,td{padding:13px 12px;border-bottom:1px solid var(--border)}
+td{font-size:12px}
+tbody tr:last-child td{border-bottom:0}
+.pill{display:inline-block;padding:4px 8px;border-radius:6px;
+font-size:11px;font-weight:700}
+.pill.high{background:#4a1d2b;color:#fda4af}
+.pill.medium{background:#493718;color:#fcd34d}
+.pill.low{background:#123b32;color:#6ee7b7}
+.empty{text-align:center;color:var(--muted);padding:25px}
+footer{padding:22px 5%;text-align:center;border-top:1px solid var(--border);
+color:var(--muted);font-size:12px}
+@media(max-width:900px){
+ .cards{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .layout{grid-template-columns:1fr}
+}
+@media(max-width:480px){
+ main{padding:20px 4%}header{padding:16px 4%}
+ .cards{gap:9px}.metric,.panel{padding:13px}
+ .value{font-size:24px}.chart-wrap{height:200px}
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">
+    <div class="logo">⬡</div>
+    <div>
+      <h1>DDOS <span class="blue">SENTINEL</span></h1>
+      <div class="subtitle">NETWORK SECURITY MONITOR</div>
+    </div>
+  </div>
+  <div class="status"><span class="dot"></span>
+    <span id="connection">SIMULASI AKTIF</span>
+  </div>
+</header>
+
+<main>
+  <div class="topline">
+    <div>
+      <h2>Security Overview</h2>
+      <p>Pantau trafik dan indikasi anomali jaringan.</p>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button id="toggle" class="primary">Ⅱ Jeda</button>
+      <button id="export">↓ Ekspor CSV</button>
+      <button id="reset" class="danger">Reset</button>
+    </div>
+  </div>
+
+  <div class="notice">
+    ⚠ MODE DEMO — Semua angka, IP, dan kejadian di halaman ini
+    adalah data simulasi, bukan hasil pemeriksaan server sungguhan.
+  </div>
+
+  <section class="cards">
+    <div class="metric">
+      <div class="metric-head">REQUEST / DETIK <span class="metric-icon">↗</span></div>
+      <div class="value" id="rps">1,240</div>
+      <div class="small" id="rps-note">Laju trafik simulasi</div>
+    </div>
+    <div class="metric">
+      <div class="metric-head">BANDWIDTH <span class="metric-icon">⇅</span></div>
+      <div class="value" id="bandwidth">18.4 <span style="font-size:14px">Mbps</span></div>
+      <div class="small">Estimasi data demo</div>
+    </div>
+    <div class="metric">
+      <div class="metric-head">ANOMALI TERDETEKSI <span class="metric-icon">⌁</span></div>
+      <div class="value warn" id="anomalies">0</div>
+      <div class="small">Peristiwa selama sesi ini</div>
+    </div>
+    <div class="metric">
+      <div class="metric-head">STATUS MONITOR <span class="metric-icon">◉</span></div>
+      <div class="value good" id="health" style="font-size:23px">NORMAL</div>
+      <div class="small" id="uptime">Sesi 00:00</div>
+    </div>
+  </section>
+
+  <section class="layout">
+    <div class="panel">
+      <div class="panel-head">
+        <div><h3>Traffic Analytics</h3>
+          <div class="small">Request per detik · 60 sampel terakhir</div>
+        </div>
+        <span class="pill low" id="chart-state">LIVE DEMO</span>
+      </div>
+      <div class="chart-wrap"><canvas id="chart"></canvas></div>
+      <div class="legend">
+        <span style="--c:#60a5fa">Request / detik</span>
+        <span style="--c:#fb7185">Ambang anomali</span>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head"><h3>Risk Assessment</h3>
+        <span>◈</span></div>
+      <div class="small">Skor risiko trafik simulasi</div>
+      <div class="risk-number" id="risk">12<span style="font-size:17px">/100</span></div>
+      <div class="progress"><div id="riskbar"></div></div>
+      <div class="risk-label good" id="risklabel">RISIKO RENDAH</div>
+      <hr>
+      <div class="info-row"><span>Baseline request</span><strong id="baseline">1,200 RPS</strong></div>
+      <div class="info-row"><span>Ambang anomali</span><strong id="threshold">2,400 RPS</strong></div>
+      <div class="info-row"><span>Lonjakan trafik</span><strong id="spike">0%</strong></div>
+      <div class="notice" id="recommendation">
+        ✓ Trafik simulasi dalam rentang normal. Tetap pantau perubahan pola.
+      </div>
+    </div>
+  </section>
+
+  <section class="panel" style="margin-bottom:16px">
+    <div class="panel-head">
+      <div><h3>Event Log</h3>
+        <div class="small">Catatan anomali dari generator demo lokal</div>
+      </div>
+      <select id="filter" aria-label="Filter tingkat keparahan">
+        <option value="all">Semua level</option>
+        <option value="HIGH">High</option>
+        <option value="MEDIUM">Medium</option>
+        <option value="LOW">Low</option>
+      </select>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr>
+          <th>WAKTU</th><th>EVENT</th><th>IP CONTOH</th>
+          <th>RPS</th><th>SEVERITY</th>
+        </tr></thead>
+        <tbody id="logs">
+          <tr><td colspan="5" class="empty">Menunggu data simulasi...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h3>Rekomendasi Pertahanan</h3>
+    <div class="info-row"><span>01 · Proteksi edge</span>
+      <strong>CDN / layanan anti-DDoS</strong></div>
+    <div class="info-row"><span>02 · Rate limiting</span>
+      <strong>Batasi request per klien</strong></div>
+    <div class="info-row"><span>03 · Observabilitas</span>
+      <strong>Analisis access log dan metrik</strong></div>
+    <div class="info-row"><span>04 · Respons insiden</span>
+      <strong>Hubungi provider / tim jaringan</strong></div>
+    <div class="notice">
+      Skor risiko hanyalah heuristik demo berbasis ambang trafik.
+      Lonjakan request tidak otomatis membuktikan serangan DDoS.
+      Validasi dengan log, status koneksi, sumber trafik, dan metrik server.
+    </div>
+  </section>
+</main>
+<footer>
+  DDOS SENTINEL · LOCAL DEMO · Tidak mengirim request ke target mana pun.<br>
+  Pemantauan server nyata memerlukan integrasi backend dan sumber data tepercaya.
+</footer>
+
+<script>
+(() => {
+  const $ = id => document.getElementById(id);
+  const baseline = 1200;
+  const threshold = 2400;
+  let running = true, tick = 0, start = Date.now();
+  let rps = baseline, totalAnomalies = 0, logs = [];
+  let samples = Array.from({length:60}, () =>
+    Math.round(baseline * (0.75 + Math.random() * 0.5)));
+
+  const demoIPs = [
+    "192.0.2.18", "198.51.100.24",
+    "203.0.113.41", "192.0.2.77"
+  ];
+
+  const fmt = n => Math.round(n).toLocaleString("id-ID");
+  const time = () => new Date().toLocaleTimeString("id-ID");
+  const pct = n => Math.round((n / baseline - 1) * 100);
+
+  function drawChart() {
+    const canvas = $("chart");
+    const rect = canvas.getBoundingClientRect();
+    if (!rect.width || !rect.height) return;
+    const dpr = window.devicePixelRatio || 1;
+    canvas.width = Math.round(rect.width * dpr);
+    canvas.height = Math.round(rect.height * dpr);
+    const ctx = canvas.getContext("2d");
+    ctx.scale(dpr,dpr);
+    const w = rect.width, h = rect.height;
+    const pad = {l:42,r:10,t:12,b:25};
+    const cw = w-pad.l-pad.r, ch = h-pad.t-pad.b;
+    const max = Math.max(3000, ...samples) * 1.08;
+    const x = i => pad.l + i/(samples.length-1)*cw;
+    const y = v => pad.t + ch - v/max*ch;
+
+    ctx.clearRect(0,0,w,h);
+    ctx.font = "10px system-ui";
+    for(let i=0;i<=4;i++){
+      const v=max*i/4, yy=y(v);
+      ctx.strokeStyle="#253149";ctx.lineWidth=1;
+      ctx.beginPath();ctx.moveTo(pad.l,yy);ctx.lineTo(w-pad.r,yy);ctx.stroke();
+      ctx.fillStyle="#8b9bb4";
+      ctx.fillText(fmt(v),2,yy+3);
+    }
+
+    ctx.setLineDash([5,4]);ctx.strokeStyle="#fb7185";
+    ctx.beginPath();ctx.moveTo(pad.l,y(threshold));
+    ctx.lineTo(w-pad.r,y(threshold));ctx.stroke();ctx.setLineDash([]);
+
+    const gradient=ctx.createLinearGradient(0,pad.t,0,h-pad.b);
+    gradient.addColorStop(0,"rgba(96,165,250,.30)");
+    gradient.addColorStop(1,"rgba(96,165,250,0)");
+    ctx.beginPath();
+    samples.forEach((v,i)=>i?ctx.lineTo(x(i),y(v)):ctx.moveTo(x(i),y(v)));
+    ctx.lineTo(x(samples.length-1),h-pad.b);
+    ctx.lineTo(x(0),h-pad.b);ctx.closePath();
+    ctx.fillStyle=gradient;ctx.fill();
+
+    ctx.beginPath();
+    samples.forEach((v,i)=>i?ctx.lineTo(x(i),y(v)):ctx.moveTo(x(i),y(v)));
+    ctx.strokeStyle="#60a5fa";ctx.lineWidth=2;ctx.stroke();
+
+    ctx.fillStyle="#8b9bb4";
+    ctx.fillText("-59 dtk",pad.l,h-5);
+    ctx.fillText("sekarang",w-55,h-5);
+  }
+
+  function addLog(level,event,value) {
+    logs.unshift({
+      time:time(),level,event,
+      ip:demoIPs[Math.floor(Math.random()*demoIPs.length)],
+      rps:fmt(value)
+    });
+    logs=logs.slice(0,100);
+    renderLogs();
+  }
+
+  function renderLogs() {
+    const filter=$("filter").value;
+    const visible=logs.filter(l=>filter==="all"||l.level===filter);
+    $("logs").innerHTML=visible.length ? visible.map(l=>{
+      const severity=l.level.toLowerCase();
+      return `<tr>
+        <td>${l.time}</td><td>${l.event}</td><td>${l.ip}</td>
+        <td>${l.rps}</td><td><span class="pill ${severity}">${l.level}</span></td>
+      </tr>`;
+    }).join("") : '<tr><td colspan="5" class="empty">Belum ada event pada filter ini.</td></tr>';
+  }
+
+  function update() {
+    if(!running) return;
+    tick++;
+    // Simulasi lonjakan sesekali; tidak menghasilkan trafik jaringan.
+    const spike = tick % 23 >= 18 && tick % 23 <= 20;
+    const variation = 0.88 + Math.random()*0.24;
+    rps = Math.round(baseline * variation * (spike ? 2.2 : 1));
+    if(Math.random()<0.035) rps=Math.round(baseline*2.8);
+
+    samples.push(rps);samples=samples.slice(-60);
+    const jump=pct(rps);
+    const score=Math.min(100,Math.max(5,Math.round(jump/2)));
+    const level=rps>=threshold*1.5?"HIGH":rps>=threshold?"MEDIUM":"LOW";
+
+    $("rps").textContent=fmt(rps);
+    $("bandwidth").innerHTML=(rps*0.014/1.0).toFixed(1)+' <span style="font-size:14px">Mbps</span>';
+    $("anomalies").textContent=fmt(totalAnomalies);
+    $("baseline").textContent=fmt(baseline)+" RPS";
+    $("threshold").textContent=fmt(threshold)+" RPS";
+    $("spike").textContent=(jump>=0?"+":"")+jump+"%";
+    $("spike").className=jump>=100?"bad":"";
+    $("risk").innerHTML=score+'<span style="font-size:17px">/100</span>';
+    $("riskbar").style.width=score+"%";
+    $("riskbar").style.background=score>=70?"#fb7185":score>=40?"#fbbf24":"#34d399";
+    $("risklabel").textContent=score>=70?"RISIKO TINGGI":score>=40?"RISIKO SEDANG":"RISIKO RENDAH";
+    $("risklabel").className="risk-label "+(score>=70?"bad":score>=40?"warn":"good");
+    $("health").textContent=score>=70?"ANOMALI":score>=40?"WASPADA":"NORMAL";
+    $("health").className="value "+(score>=70?"bad":score>=40?"warn":"good");
+    $("rps-note").textContent=jump>=100?"Lonjakan trafik simulasi":"Laju trafik simulasi";
+    $("recommendation").textContent=score>=70
+      ?"⚠ Lonjakan signifikan pada data demo. Periksa metrik server dan log sebelum menyimpulkan adanya serangan."
+      :score>=40
+      ?"⚠ Trafik melewati ambang demo. Lakukan validasi terhadap baseline dan sumber trafik."
+      :"✓ Trafik simulasi dalam rentang normal. Tetap pantau perubahan pola.";
+
+    if(rps>=threshold) {
+      totalAnomalies++;
+      addLog(level,rps>=threshold*1.5?"Lonjakan trafik tinggi":"Trafik melewati ambang",rps);
+    } else if(tick===1 || tick%8===0) {
+      addLog("LOW","Pemeriksaan trafik demo",rps);
+    }
+    const elapsed=Math.floor((Date.now()-start)/1000);
+    $("uptime").textContent="Sesi "+String(Math.floor(elapsed/60)).padStart(2,"0")+":"+String(elapsed%60).padStart(2,"0");
+    drawChart();
+  }
+
+  $("toggle").addEventListener("click",()=>{
+    running=!running;
+    $("toggle").textContent=running?"Ⅱ Jeda":"▶ Lanjut";
+    $("connection").textContent=running?"SIMULASI AKTIF":"SIMULASI DIJEDA";
+    $("chart-state").textContent=running?"LIVE DEMO":"PAUSED";
+    $("chart-state").className="pill "+(running?"low":"medium");
+    if(running) update();
+  });
+
+  $("reset").addEventListener("click",()=>{
+    tick=0;start=Date.now();rps=baseline;totalAnomalies=0;logs=[];
+    samples=Array.from({length:60},()=>Math.round(baseline*(.75+Math.random()*.5)));
+    renderLogs();update();
+  });
+
+  $("filter").addEventListener("change",renderLogs);
+  $("export").addEventListener("click",()=>{
+    const rows=[["Waktu","Event","IP demo","RPS","Severity"],
+      ...logs.map(l=>[l.time,l.event,l.ip,l.rps,l.level])];
+    const csv=rows.map(row=>row.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(",")).join("\r\n");
+    const blob=new Blob(["\uFEFF"+csv],{type:"text/csv;charset=utf-8;"});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement("a");
+    a.href=url;a.download="ddos-sentinel-report.csv";a.click();
+    URL.revokeObjectURL(url);
+  });
+
+  window.addEventListener("resize",drawChart);
+  update();
+  setInterval(update,1500);
+})();
+</script>
+</body>
+</html>
